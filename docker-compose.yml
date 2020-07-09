@@ -1,0 +1,83 @@
+version: "3"
+
+networks: 
+    laravel-zero-simple-command:
+
+services: 
+    apache:
+        build: 
+            context: ""
+            dockerfile: ./docker/Dockerfile
+        container_name: apache
+        depends_on: 
+            - mysql
+        ports: 
+            - 80:80
+            - 443:443
+        volumes: 
+            - ./src:/var/www/html:cached
+            - ./docker/certs:/var/www/certs:cached
+        networks:
+            - laravel-zero-simple-command
+    mysql:
+        image: mysql:5.7
+        container_name: mysql
+        restart: unless-stopped
+        tty: true
+        ports: 
+            - "23306:3306"
+        volumes:
+            - ./mysql:/var/lib/mysql:cached
+        environment:
+            MYSQL_USER: root
+            MYSQL_PASSWORD: secret
+            MYSQL_ROOT_PASSWORD: secret
+            SERVICE_TAGS: dev
+            SERVICE_NAME: mysql
+        networks:
+            - laravel-zero-simple-command
+    npm:
+        image: node:13.7
+        container_name: npm
+        volumes:
+            - ./src:/var/www/html:cached
+        working_dir: /var/www/html
+        entrypoint: ["npm"]
+        networks:
+            - laravel-zero-simple-command
+    artisan:
+        build:
+            context: ""
+            dockerfile: ./docker/Dockerfile
+        container_name: artisan
+#        depends_on
+#            - mysql
+        volumes:
+            - ./src:/var/www/html:cached
+        working_dir: /var/www/html
+        entrypoint: ["/var/www/html/artisan"]
+        networks:
+            - laravel-zero-simple-command
+    create-project:
+        build:
+            context: ""
+            dockerfile: ./docker/Dockerfile
+        container_name: create-project
+#        volumes:
+#            - ./src:/var/www/html:cached
+        working_dir: /var/www/html
+        entrypoint: ["/usr/local/bin/create-project"]
+        networks:
+            - laravel-zero-simple-command
+    create-database:
+        build:
+            context: ""
+            dockerfile: ./docker/Dockerfile
+        container_name: create-database
+#        volumes:
+#            - ./src:/var/www/html:cached
+        working_dir: /var/www/html
+        entrypoint: ["/usr/local/bin/create-databases"]
+        networks:
+            - laravel-zero-simple-command
+
